@@ -47,3 +47,27 @@ In this analyse only a part of the provided attributes are used:
 * "ExpectedStartDate": the date the project is expected to start
 * "CompletionDate": the date the project is expected to end/ has ended
 * "IncomegroupName": development categroy of the recipient (ex.: 'LDCs','LMICs' ... see  https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/DAC-List-of-ODA-Recipients-for-reporting-2020-flows.pdf for details
+
+The data can be downloaded by executing fetchdata.sh. The script will create the directory 'data' and store the zipfiles under the name referrenced in the scripts.
+
+# quicksetup for up python env
+
+<pre>
+git clone https://github.com/die-tageszeitung/water-data
+
+cd water-data
+
+virtualenv -p python3 .
+
+source bin/activate
+
+pip install pandas
+pip install matplotlib
+pip install numpy
+</pre>
+
+then run
+
+<pre>
+./python/src/water-data-lib.py
+</pre>
