@@ -3,6 +3,8 @@
 from pandas import DataFrame, read_csv
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+from datetime import datetime
 
 datasets = {
     "fullset": ["crs1994-73.zip","crs1999-95.zip","crs2000-01.zip","crs2002-03.zip","crs2005-04.zip","crs2006.zip",
@@ -35,6 +37,7 @@ def read_water_data(setname = "playset", datadir='data/'):
     filelist = datasets[setname]
     
     for i in filelist:
+        print("reading: %s/%s" %(datadir,i))
         df = df.append(read_csv(datadir+i,sep="|",
                                 header=0,quotechar='"',
                                 encoding="iso8859_15",
@@ -96,10 +99,25 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
     nrows = int(len(windowsize) / ncols) + 1
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols,figsize=( ncols * subplotwidth, nrows * subplotwidth ))
 
+    rdf = idf.copy()
+
+    # filter on Commitmentdate
+    if startyear:
+        rdf = rdf[rdf['CommitmentDate'] > datetime(year=startyear-1,month=12,day=31)]
+        targetdir = targetdir + "from_" + str(startyear) + "_"
+    if stopyear:
+        rdf = rdf[rdf['CommitmentDate'] < datetime(year=stopyear+1,month=1,day=1)]
+        targetdir = targetdir + "upto_" + str(startyear) 
+    if startyear or stopyear:
+        targetdir = targetdir + "/"
+
+    if filterzerocommitment:
+        rdf = rdf[rdf['USD_Commitment_Defl'] != 0.0]
+
+    # generate subplots for each defined window
     for (i,win) in enumerate(windowsize):
-        df = idf.copy()
-        if filterzerocommitment:
-            df = df[df['USD_Commitment_Defl'] != 0.0]
+        print("filtering for and creating: %s for subplot: %.2f < x > %.2f" %(targetdir + "projects_commitsizes.png",np.float64(win[0]),np.float64(win[1])))
+        df = rdf.copy()
             
         df = df[df['USD_Commitment_Defl'] > np.float64(win[0])]
         df = df[df['USD_Commitment_Defl'] < np.float64(win[1])]
@@ -107,17 +125,25 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
         projectcount = df['USD_Commitment_Defl'].count()
         commitsum = df['USD_Commitment_Defl'].sum()
 
-        print("drawing at %d - %d" %(i % ncols,int(i/ncols)))
-        print(df.describe())
-        
         df['USD_Commitment_Defl'].plot(kind='hist',grid=True,ax=axes[int(i/ncols)][i % ncols],bins=bins,
                                       title=" %.2f < x > %.2f \n %d projects with total of %.2f mUSD" % (np.float64(win[0]),np.float64(win[1]),projectcount,commitsum))
-        
 
+    # create directory, store graph with all subplots as a png, close plot to release memory
+    os.makedirs(targetdir,exist_ok=True)
     plt.savefig(targetdir+"projects_commitsizes.png")
     plt.close(plt.gcf())
 
 
 if __name__ == "__main__":
-    df = read_water_data()
+    # read the date respecting what is defined as "sane" set from the oecd
+    df = read_water_data(setname="sane")
+    # generate histogram over the full dataset
     generate_histograms_about_projectsize(df)
+    # histogram for the years 2015-
+    generate_histograms_about_projectsize(df,startyear=2015)
+    # histogram for the years 2015-2017
+    generate_histograms_about_projectsize(df,startyear=2015,stopyear=2017)
+    # and a histogram for every year
+    for i in range(2010,2020):
+        generate_histograms_about_projectsize(df,startyear=i,stopyear=i)
+
