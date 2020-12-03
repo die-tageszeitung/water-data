@@ -1,3 +1,10 @@
+# project directories
+
+results/
+
+
+# from here an it's generic ignores
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
