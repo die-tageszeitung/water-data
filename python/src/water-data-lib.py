@@ -8,6 +8,8 @@ import numpy as np
 import os
 from datetime import datetime
 import json
+import csv
+
 datasets = {
     "fullset": ["crs1994-73.zip","crs1999-95.zip","crs2000-01.zip","crs2002-03.zip","crs2005-04.zip","crs2006.zip",
                 "crs2007.zip","crs2008.zip","crs2009.zip","crs2010.zip","crs2011.zip","crs2012.zip","crs2013.zip",
@@ -139,7 +141,7 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
         if df['USD_Commitment_Defl'].count() > 0:
             dfh=pd.cut(df['USD_Commitment_Defl'],bins=bins).value_counts()
             with open("%s%s-%.2f-%.2f.json" %(targetdir,basefilename,np.float64(win[0]),np.float64(win[1])),"w") as fd:
-                fd.write(dfh.to_json())
+                fd.write(dfh.to_json(orient="index"))
 
         else:
             print("Warning no Data for: %s%s-%.2f-%.2f.json" %(targetdir,basefilename,np.float64(win[0]),np.float64(win[1])))
@@ -149,7 +151,8 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
 
 def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],flowcodes=['11','13'],
                                        recipientcodes=["285","248","282","238","278","266",
-                                                       "228","645","666","555","142","437","428"]):
+                                                       "228","645","666","555","142","437","428"],
+                                       filterzerocommitment=True):
     """
     Filters a given DataFrame for donors, sectors, flows and/or recipients. Only the provided will be taken into account.
     Since this dataanlyse is for specific project the defaults are choosen for germany, water, ODA Grands and ODA Loans. the default recipients are:
@@ -172,11 +175,14 @@ def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],
     @param sectorcodes: an array of sector codes (label/text) used by the oecd to identify a secort. Use None or array of size 0 to skip this filter
     @param flowcodes: an array of flow codes (label/text) used by the oecd to mark specific types of helps. Use None or array of size 0 to skip this filter
     @param recipientcodes: an array of recipient codes (label/text) used by the oecd to identify a recipient country
-
+    @param filterzerocommitment: filter out commitments with a value of zero
     @return: returns a new DataFrame with applied filters
     """
 
     df = idf.copy()
+    if filterzerocommitment:
+        df = df[df['USD_Commitment_Defl'] != 0.0]
+
     if type(donorcodes) == type([]) and len(donorcodes) > 0:
         df = df[df['DonorCode'].isin(donorcodes)]
         
@@ -190,23 +196,65 @@ def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],
         df = df[df['RecipientCode'].isin(recipientcodes)]
         
     return df
-    
+
+def save_micro_data(idf,
+                    features=['DonorName','RecipientName','IncomegroupName',
+                              'USD_Commitment_Defl','USD_Received_Defl','ShortDescription',
+                              'ProjectTitle','PurposeName','SectorName','ChannelName','ChannelReportedName',
+                              'ExpectedStartDate','CompletionDate','LongDescription','CommitmentDate'],
+                    targetdir = "results/microdata/",basefilename = 'microdata'):
+    """
+    stores a csv and a jsonfile with the selected features of a dataframe
+
+    @param idf: the dataframe to extract the features/columns from
+    @param features: an array containing the featurenames to extract
+    @param targetdir: the directory to store data in. it is created if it is missing
+    @param basefilename: the first part of the filename to use for the csv/json-files
+    """
+
+    if type(features) == type([]) and len(features) > 0:
+        os.makedirs(targetdir,exist_ok=True) 
+        idf.to_csv(path_or_buf="%s/%s.csv" %(targetdir,basefilename),
+                   sep = ";",  columns = features, quoting=csv.QUOTE_NONNUMERIC)
+        df = DataFrame()
+        for i in features:
+            df[i] = idf[i]
+        df.reset_index().to_json(path_or_buf="%s/%s.json" %(targetdir,basefilename),
+                                 orient="index")
+                   
 
 if __name__ == "__main__":
-    # read the data respecting what is defined as "sane" set from the oecd
-    df = read_water_data(setname="sane commitment")
-    # generate histogram over the full dataset
-    generate_histograms_about_projectsize(df)
-    # histogram for the years 2010-
-    generate_histograms_about_projectsize(df,startyear=2010)
-    # histogram for the years 2015-2017
-    generate_histograms_about_projectsize(df,startyear=2015,stopyear=2017)
-    # and a histogram for every year
-    for i in range(2010,2020):
-        generate_histograms_about_projectsize(df,startyear=i,stopyear=i)
+    devel = True
 
-    df = filter_donor_sector_flow_recipient(df)
     # generate histogram over the full dataset
-    generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png")
-    generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png",startyear=2015)
+    if not devel:
+        # read the data respecting what is defined as "sane" set from the oecd
+        df = read_water_data(setname="sane commitment")
+        # generate histogram over the full dataset
+        generate_histograms_about_projectsize(df)
+        # histogram for the years 2010-
     
+        generate_histograms_about_projectsize(df,startyear=2010)
+        # histogram for the years 2015-2017
+        generate_histograms_about_projectsize(df,startyear=2015,stopyear=2017)
+        # and a histogram for every year
+        for i in range(2010,2020):
+            generate_histograms_about_projectsize(df,startyear=i,stopyear=i)
+
+        # save microdata for all recipients, but filtered otherwise
+        df = filter_donor_sector_flow_recipient(df,recipientcodes=None)
+        save_micro_data(df)
+
+        df = filter_donor_sector_flow_recipient(df)
+        generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png")
+        generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png",startyear=2015)
+        save_micro_data(df,basefilename="microdata_selectedrecipients")
+    else:
+        df = read_water_data(setname="playset")
+        df = filter_donor_sector_flow_recipient(df,recipientcodes=None)
+        save_micro_data(df)
+        
+        # generate histogram for selected entities
+        df = filter_donor_sector_flow_recipient(df)
+        save_micro_data(df,basefilename="microdata_selectedrecipients")
+
