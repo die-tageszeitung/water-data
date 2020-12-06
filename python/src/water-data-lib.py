@@ -367,7 +367,7 @@ def save_micro_data(idf,
                    
 
 if __name__ == "__main__":
-    devel = False
+    devel = True
 
     # generate histogram over the full dataset
     if not devel:
@@ -398,5 +398,15 @@ if __name__ == "__main__":
         save_micro_data(df,basefilename="microdata_selectedrecipients")
 
     else:
-        df = read_water_data(setname="playset")
+        import pickle
+        filename = "data/devel_df.p"
+        df = None
+        try:
+            with open(filename, 'rb') as filehandler: 
+                df = pickle.load(filehandler)
+        except:
+            df = read_water_data(setname="playset")
+            with open(filename, 'wb') as filehandler:
+                pickle.dump(df, filehandler)
+        
         generate_barchart_for_incomegroup_distribution(df)
