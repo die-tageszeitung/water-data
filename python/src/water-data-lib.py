@@ -205,7 +205,6 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
         try:
             df2[i]=ddf[i]
         except Exception as e:
-            print(e)
             pass
     df2['CommitmentYear'] = ddf.reset_index()['CommitmentDate'].apply(lambda x: str(x.year))
     
@@ -216,7 +215,6 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
         try:
             df2[i] = (df2[i] / countrytypesum[0]) * 100
         except Exception as e:
-            print(e)
             pass
     df2.replace([np.inf, -np.inf], np.nan, inplace=True) 
 
