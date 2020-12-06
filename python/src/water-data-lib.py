@@ -150,7 +150,7 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
         else:
             print("Warning no Data for: %s%s-%.2f-%.2f.json" %(targetdir,basefilename,np.float64(win[0]),np.float64(win[1])))
 
-    plt.savefig(targetdir+basefilename)
+    plt.savefig(targetdir+basefilename,bbox_inches='tight')
     plt.close(plt.gcf())
 
 def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyear = None,
@@ -288,7 +288,7 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
 
         
     
-    plt.savefig(targetdir+basefilename)
+    plt.savefig(targetdir+basefilename,bbox_inches='tight')
     plt.close(plt.gcf())
 
     
@@ -386,9 +386,13 @@ if __name__ == "__main__":
         for i in range(2010,2020):
             generate_histograms_about_projectsize(df,startyear=i,stopyear=i)
 
+
+        generate_barchart_for_incomegroup_distribution(df)
+            
         # save microdata for all recipients, but filtered otherwise
         df = filter_donor_sector_flow_recipient(df,recipientcodes=None)
         save_micro_data(df)
+        generate_barchart_for_incomegroup_distribution(df,basefilename="water_incomegroups.png")
 
         df = filter_donor_sector_flow_recipient(df)
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png")
