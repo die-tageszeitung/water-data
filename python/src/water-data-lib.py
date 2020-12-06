@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, Grouper
 import pandas as pd
 
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
 import numpy as np
 import os
 from datetime import datetime
@@ -27,6 +29,7 @@ datasets = {
              "crs2016.zip","crs2017.zip","crs2018.zip","crs2019.zip"],
 
     "playset": ["crs2017.zip",'crs2018.zip','crs2019.zip','crs2016.zip']
+    #"playset": ['crs2019.zip']
 }
 
 def read_water_data(setname = "playset", datadir='data/'):
@@ -119,6 +122,7 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
         targetdir = targetdir + "/"
 
     if filterzerocommitment:
+        rdf = rdf[rdf['USD_Commitment_Defl'].notnull()]
         rdf = rdf[rdf['USD_Commitment_Defl'] != 0.0]
         
     os.makedirs(targetdir,exist_ok=True)
@@ -149,6 +153,146 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
     plt.savefig(targetdir+basefilename)
     plt.close(plt.gcf())
 
+def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyear = None,
+                                                   targetdir = "results/dataoverview/",
+                                                   basefilename = "incomegroups.png",
+                                                   filterzerocommitment = True,
+                                                   incomegroups=['LDCs','LMICs','UMICs'],
+                                                   figsize=(30,56)):
+    """
+    generates six barchart-graphics showing the distribution of commitments and projectnumer among the different incomegroups (LDCs,LICs...) over time. also creates the json-files of the aggregated data.
+
+    @param idf (DataFrame): the inputDataFrame that shall be used as base for the images and json-files
+    @param startyear (int): select a specific year as start. for example 2011 to get graphs beginning at 1-1-2011 upto the end of the data
+    @param stopyear: select a specific year to end. for example 2018 to get graphs including data upto 31-12-2018 
+    @param targetdir: where to store the results. will be created if needed
+    @param filterzerocommitment: about 50% of the raw-data have not amount for the attribute 'USD_Commitment_Defl' per default those datapoints will be ignored
+    @param basefilename: the filename and format (based on extension) of the resulting image
+    @incomegroups: only consider the listed incomegroups. expects an array of IncomegroupNames. There are: LDCs,LMICs,MADCTs,Other LICs,Part I unallocated by income, UMICs. project specific per default only LDCs, LMICs and UMICs are taken into account. with None or empty array every group is considered
+
+    """
+
+    all_incomegroups = ["LDCs","LMICs","MADCTs","Other LICs","Part I unallocated by income", "UMICs"]
+    
+    os.makedirs(targetdir,exist_ok=True)
+        
+    nrows = 8
+    
+    fig, axes = plt.subplots(nrows=nrows, ncols=1,figsize=figsize)
+
+    df = DataFrame()
+    for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl']:
+        df[i] = idf[i]
+
+    if filterzerocommitment:
+        df = df[df['USD_Commitment_Defl'].notnull()]
+        df = df[df['USD_Commitment_Defl'] != 0.0]
+
+    if type(incomegroups) == type([]) and len(incomegroups) > 0:
+        df = df[df['IncomegroupName'].isin(incomegroups)]
+
+    # group by year and IncomegroupName
+    df = df.set_index("CommitmentDate")
+
+    groupeddf = df.groupby([Grouper(freq="A"), 'IncomegroupName'])['USD_Commitment_Defl']
+
+    # resolve grouping, unstack, fill missing and reset_index()
+    ddf = groupeddf.sum().unstack().fillna(0.0).reset_index()
+    print(ddf.head())
+    # get a percent view in a new DataFrame
+    df2 = DataFrame()
+    for i in all_incomegroups:
+        try:
+            df2[i]=ddf[i]
+        except Exception as e:
+            print(e)
+            pass
+    df2['CommitmentYear'] = ddf.reset_index()['CommitmentDate'].apply(lambda x: str(x.year))
+    
+    df2=df2.set_index('CommitmentYear')
+    
+    countrytypesum = DataFrame(df2.T.sum())
+    for i in all_incomegroups:
+        try:
+            df2[i] = (df2[i] / countrytypesum[0]) * 100
+        except Exception as e:
+            print(e)
+            pass
+    df2.replace([np.inf, -np.inf], np.nan, inplace=True) 
+
+    df2.plot(width=0.9,grid=True,kind='bar', ax=axes[1],title="mUSD per IncomeGroup (Prozent)")
+    df2.plot(width=0.9,grid=True,kind='bar', stacked=True, ax=axes[2],title="mUSD per IncomeGroup (Prozent)")
+
+
+    # an absolut view
+    # create index on year as string and drop old index
+    ddf["CommitmentYear"]=ddf["CommitmentDate"].apply(lambda x: str(x.year))
+    ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
+
+    # plot absolut sum
+    ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[0], title="mUSD per IncomeGroup (sum)")
+
+    # create bar-char with mean
+    ddf = groupeddf.mean().unstack().fillna(0.0).reset_index()
+    
+    # create index on year as string and drop old index
+    ddf["CommitmentYear"]=ddf["CommitmentDate"].apply(lambda x: str(x.year))
+    ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
+
+    ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[3], title="mUSD per IncomeGroup (mean)")
+
+
+    # create bar-char with median
+    ddf = groupeddf.median().unstack().fillna(0.0).reset_index()
+    
+    # create index on year as string and drop old index
+    ddf["CommitmentYear"]=ddf["CommitmentDate"].apply(lambda x: str(x.year))
+    ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
+
+    ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[4], title="mUSD per IncomeGroup (median)")
+    
+    ddf = groupeddf.count().unstack().fillna(0.0).reset_index()
+
+    # get a percent view in a new DataFrame
+    df2 = DataFrame()
+    for i in all_incomegroups:
+        try:
+            df2[i]=ddf[i]
+        except Exception as e:
+            print(e)
+            pass
+    df2['CommitmentYear'] = ddf.reset_index()['CommitmentDate'].apply(lambda x: str(x.year))
+    
+    df2=df2.set_index('CommitmentYear')
+    
+    countrytypesum = DataFrame(df2.T.sum())
+    for i in all_incomegroups:
+        try:
+            df2[i] = (df2[i] / countrytypesum[0]) * 100
+        except Exception as e:
+            print(e)
+            pass
+    df2.replace([np.inf, -np.inf], np.nan, inplace=True) 
+
+    df2.plot(width=0.9,grid=True,kind='bar', ax=axes[6],title="projects per IncomeGroup (Prozent)")
+    df2.plot(width=0.9,grid=True,kind='bar', stacked=True,ax=axes[7],title="projects per IncomeGroup (Prozent)")
+
+    
+    # create index on year as string and drop old index
+    ddf["CommitmentYear"]=ddf["CommitmentDate"].apply(lambda x: str(x.year))
+    ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
+    
+    ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[5], title="projects per IncomeGroup (count)")
+
+
+
+        
+    
+    plt.savefig(targetdir+basefilename)
+    plt.close(plt.gcf())
+
+    
+    
 def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],flowcodes=['11','13'],
                                        recipientcodes=["285","248","282","238","278","266",
                                                        "228","645","666","555","142","437","428"],
@@ -181,6 +325,7 @@ def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],
 
     df = idf.copy()
     if filterzerocommitment:
+        df = df[df['USD_Commitment_Defl'].notnull()]
         df = df[df['USD_Commitment_Defl'] != 0.0]
 
     if type(donorcodes) == type([]) and len(donorcodes) > 0:
@@ -224,7 +369,7 @@ def save_micro_data(idf,
                    
 
 if __name__ == "__main__":
-    devel = True
+    devel = False
 
     # generate histogram over the full dataset
     if not devel:
@@ -249,12 +394,9 @@ if __name__ == "__main__":
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png")
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png",startyear=2015)
         save_micro_data(df,basefilename="microdata_selectedrecipients")
+
+        generate_barchart_for_incomegroup_distribution(df)
+
     else:
         df = read_water_data(setname="playset")
-        df = filter_donor_sector_flow_recipient(df,recipientcodes=None)
-        save_micro_data(df)
-        
-        # generate histogram for selected entities
-        df = filter_donor_sector_flow_recipient(df)
-        save_micro_data(df,basefilename="microdata_selectedrecipients")
-
+        generate_barchart_for_incomegroup_distribution(df)
