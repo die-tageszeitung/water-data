@@ -399,8 +399,6 @@ if __name__ == "__main__":
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png",startyear=2015)
         save_micro_data(df,basefilename="microdata_selectedrecipients")
 
-        generate_barchart_for_incomegroup_distribution(df)
-
     else:
         df = read_water_data(setname="playset")
         generate_barchart_for_incomegroup_distribution(df)
