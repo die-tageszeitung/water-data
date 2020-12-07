@@ -1,0 +1,27 @@
+.mainbody {
+  width: 100%;
+  height: 100%;
+}
+
+.singlecolumn {
+  margin: 100px auto;
+  width: 50%;
+  color: black;
+}
+
+.countries_paragraph {
+  margin-top: 50px;
+}
+
+.question {
+  font-style: italic;
+}
+
+.imgcontainer {
+  height: 500px;
+}
+
+.alluvial {
+  width: 100%;
+  height: 100%;
+}
