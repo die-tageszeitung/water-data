@@ -5,7 +5,7 @@
 
 .singlecolumn {
   margin: 100px auto;
-  width: 80%;
+  width: 60%;
   color: black;
   font-family: 'Roboto', sans-serif;
 }
@@ -30,11 +30,36 @@
   height: 100%;
 }
 
-.list {
+.leads {
+  margin-top: 80px;
+  background-color: rgba(230, 235, 255, 0.4);
+  border: 1px solid #4F60FF;
+  border-radius: 10px;
+}
+
+.annotations {
+  padding: 10px;
+}
+
+.list, .navigator {
+  width: 100%;
   margin-top: 40px;
   margin-bottom: 40px;
 }
 
+.navigator {
+  display: inline-flex;
+}
+
 .map {
   margin-top: 20%;
+}
+
+
+.next, .previous {
+  width: 50%;
+}
+
+.next {
+  text-align: right;
 }
