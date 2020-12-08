@@ -107,7 +107,7 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
     df = DataFrame()
 
     # filter for needed features
-    for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl','SectorName','PurposeName','RecipientName']:
+    for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl','SectorName','PurposeName','RecipientName','AgencyName']:
         df[i] = idf[i]
 
     if startyear:
@@ -132,18 +132,22 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
 
     
     for i in [['IncomegroupName','SectorName'],
+              ['IncomegroupName','PurposeName'],
               ['IncomegroupName','SectorName','PurposeName'],
               ['RecipientName','SectorName'],
-              ['RecipientName','SectorName','PurposeName']]:
+              ['RecipientName','PurposeName'],
+              ['RecipientName','SectorName','PurposeName'],
+              ['AgencyName','RecipientName'],
+              ['AgencyName','PurposeName'],
+              ['AgencyName','IncomegroupName'],
+              ['AgencyName','SectorName']]:
 
-        dfg = df.groupby(i).sum()
+        dfg = df.groupby(i).sum().reset_index()
         with open("%s%s-%s.json" %(targetdir,basefilename,"-".join(i)),"w") as fd:
                 fd.write(dfg.to_json(orient="index"))
 
-        dfg = dfg.reset_index()
-
         fig = px.sunburst(dfg, path=i, values='USD_Commitment_Defl')
-        fig.write_image("%s%s-%s.png" %(targetdir,basefilename,"-".join(i)))
+        fig.write_image("%s%s-%s.png" %(targetdir,basefilename,"-".join(i)),scale=3)
 
 
     
@@ -456,7 +460,7 @@ def save_micro_data(idf,
                    
 
 if __name__ == "__main__":
-    devel = True
+    devel = False
 
     # generate histogram over the full dataset
     if not devel:
@@ -485,14 +489,20 @@ if __name__ == "__main__":
         for i in range(2010,2020):
             generate_histograms_about_projectsize(df,startyear=i,stopyear=i)
 
-
+        
         generate_barchart_for_incomegroup_distribution(df,startyear=1980)
-            
+        generate_sunburst_for_grouping(df,startyear=1980)
+
+        # focus on all german projects
+        df_focus = filter_donor_sector_flow_recipient(df,sectorcodes=None,recipientcodes=None)
+        generate_sunburst_for_grouping(df_focus,basefilename="germany_projects_grouping",startyear=1980)
+        
         # save microdata for all recipients, but filtered otherwise
         df = filter_donor_sector_flow_recipient(df,recipientcodes=None)
         save_micro_data(df)
         generate_barchart_for_incomegroup_distribution(df,basefilename="water_incomegroups.png",startyear=1980)
-
+        generate_sunburst_for_grouping(df,basefilename="water_projects_grouping",startyear=1980)
+        
         df = filter_donor_sector_flow_recipient(df)
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png")
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png",startyear=2015)
