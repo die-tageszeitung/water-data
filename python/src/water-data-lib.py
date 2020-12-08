@@ -11,7 +11,9 @@ import os
 from datetime import datetime
 import json
 import csv
+import pickle
 
+        
 datasets = {
     "fullset": ["crs1994-73.zip","crs1999-95.zip","crs2000-01.zip","crs2002-03.zip","crs2005-04.zip","crs2006.zip",
                 "crs2007.zip","crs2008.zip","crs2009.zip","crs2010.zip","crs2011.zip","crs2012.zip","crs2013.zip",
@@ -78,7 +80,7 @@ def read_water_data(setname = "playset", datadir='data/'):
                                              'CompletionDate','Repaydate1','Repaydate2']))
     return df
         
-def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
+def generate_histograms_about_projectsize(idf,startyear = None, stopyear = datetime.now().year,
                                           targetdir = "results/dataoverview/",
                                           basefilename = "projects_commitsizes.png",
                                           filterzerocommitment = True,
@@ -153,7 +155,7 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = None,
     plt.savefig(targetdir+basefilename,bbox_inches='tight')
     plt.close(plt.gcf())
 
-def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyear = None,
+def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyear = datetime.now().year,
                                                    targetdir = "results/dataoverview/",
                                                    basefilename = "incomegroups.png",
                                                    filterzerocommitment = True,
@@ -173,9 +175,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     """
 
     all_incomegroups = ["LDCs","LMICs","MADCTs","Other LICs","Part I unallocated by income", "UMICs"]
-    
-    os.makedirs(targetdir,exist_ok=True)
-        
+
+      
     nrows = 8
     
     fig, axes = plt.subplots(nrows=nrows, ncols=1,figsize=figsize)
@@ -183,6 +184,17 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     df = DataFrame()
     for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl']:
         df[i] = idf[i]
+
+    if startyear:
+        df = df[df['CommitmentDate'] > datetime(year=startyear-1,month=12,day=31)]
+        targetdir = targetdir + "from_" + str(startyear) + "_"
+    if stopyear:
+        df = df[df['CommitmentDate'] < datetime(year=stopyear+1,month=1,day=1)]
+        targetdir = targetdir + "upto_" + str(stopyear) 
+    if startyear or stopyear:
+        targetdir = targetdir + "/"
+    
+    os.makedirs(targetdir,exist_ok=True)
 
     if filterzerocommitment:
         df = df[df['USD_Commitment_Defl'].notnull()]
@@ -221,6 +233,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     df2.plot(width=0.9,grid=True,kind='bar', ax=axes[1],title="mUSD per IncomeGroup (Prozent)")
     df2.plot(width=0.9,grid=True,kind='bar', stacked=True, ax=axes[2],title="mUSD per IncomeGroup (Prozent)")
 
+    with open("%s%s-sum-percent.json" %(targetdir,basefilename),"w") as fd:
+        fd.write(df2.to_json(orient="index"))
 
     # an absolut view
     # create index on year as string and drop old index
@@ -230,6 +244,9 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     # plot absolut sum
     ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[0], title="mUSD per IncomeGroup (sum)")
 
+    with open("%s%s-sum-absolut.json" %(targetdir,basefilename),"w") as fd:
+        fd.write(ddf.to_json(orient="index"))
+
     # create bar-char with mean
     ddf = groupeddf.mean().unstack().fillna(0.0).reset_index()
     
@@ -238,6 +255,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
 
     ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[3], title="mUSD per IncomeGroup (mean)")
+    with open("%s%s-mean.json" %(targetdir,basefilename),"w") as fd:
+        fd.write(ddf.to_json(orient="index"))
 
 
     # create bar-char with median
@@ -248,6 +267,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
 
     ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[4], title="mUSD per IncomeGroup (median)")
+    with open("%s%s-median.json" %(targetdir,basefilename),"w") as fd:
+        fd.write(ddf.to_json(orient="index"))
     
     ddf = groupeddf.count().unstack().fillna(0.0).reset_index()
 
@@ -274,6 +295,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
 
     df2.plot(width=0.9,grid=True,kind='bar', ax=axes[6],title="projects per IncomeGroup (Prozent)")
     df2.plot(width=0.9,grid=True,kind='bar', stacked=True,ax=axes[7],title="projects per IncomeGroup (Prozent)")
+    with open("%s%s-count-percent.json" %(targetdir,basefilename),"w") as fd:
+        fd.write(df2.to_json(orient="index"))
 
     
     # create index on year as string and drop old index
@@ -281,6 +304,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     ddf = ddf.drop(columns=["CommitmentDate"]).set_index("CommitmentYear")
     
     ddf.plot(width=0.9,grid=True,kind='bar',ax=axes[5], title="projects per IncomeGroup (count)")
+    with open("%s%s-count-absolut.json" %(targetdir,basefilename),"w") as fd:
+        fd.write(ddf.to_json(orient="index"))
 
 
 
@@ -367,12 +392,24 @@ def save_micro_data(idf,
                    
 
 if __name__ == "__main__":
-    devel = True
+    devel = False
 
     # generate histogram over the full dataset
     if not devel:
+        filename = "data/prod_df.p"
+        df = None
         # read the data respecting what is defined as "sane" set from the oecd
-        df = read_water_data(setname="sane commitment")
+        # if a pickle file is present, load that instead
+
+        try:
+            with open(filename, 'rb') as filehandler: 
+                df = pickle.load(filehandler)
+        except:
+            #df = read_water_data(setname="playset")
+            df = read_water_data(setname="fullset")
+            with open(filename, 'wb') as filehandler:
+                pickle.dump(df, filehandler)
+
         # generate histogram over the full dataset
         generate_histograms_about_projectsize(df)
         # histogram for the years 2010-
@@ -385,12 +422,12 @@ if __name__ == "__main__":
             generate_histograms_about_projectsize(df,startyear=i,stopyear=i)
 
 
-        generate_barchart_for_incomegroup_distribution(df)
+        generate_barchart_for_incomegroup_distribution(df,startyear=1980)
             
         # save microdata for all recipients, but filtered otherwise
         df = filter_donor_sector_flow_recipient(df,recipientcodes=None)
         save_micro_data(df)
-        generate_barchart_for_incomegroup_distribution(df,basefilename="water_incomegroups.png")
+        generate_barchart_for_incomegroup_distribution(df,basefilename="water_incomegroups.png",startyear=1980)
 
         df = filter_donor_sector_flow_recipient(df)
         generate_histograms_about_projectsize(df,basefilename="projectsizes_germany_water_selected_countries.png")
@@ -398,15 +435,19 @@ if __name__ == "__main__":
         save_micro_data(df,basefilename="microdata_selectedrecipients")
 
     else:
-        import pickle
         filename = "data/devel_df.p"
         df = None
         try:
             with open(filename, 'rb') as filehandler: 
                 df = pickle.load(filehandler)
         except:
-            df = read_water_data(setname="playset")
+            #df = read_water_data(setname="playset")
+            df = read_water_data(setname="fullset")
             with open(filename, 'wb') as filehandler:
                 pickle.dump(df, filehandler)
         
-        generate_barchart_for_incomegroup_distribution(df)
+        generate_barchart_for_incomegroup_distribution(df,startyear=1980)
+
+        df = filter_donor_sector_flow_recipient(df)
+        generate_barchart_for_incomegroup_distribution(df,basefilename="water_incomegroups.png",startyear=1980)
+
