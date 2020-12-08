@@ -12,6 +12,7 @@ from datetime import datetime
 import json
 import csv
 import pickle
+import plotly.express as px
 
         
 datasets = {
@@ -79,7 +80,73 @@ def read_water_data(setname = "playset", datadir='data/'):
                                 parse_dates=["CommitmentDate",'ExpectedStartDate','Year',
                                              'CompletionDate','Repaydate1','Repaydate2']))
     return df
+
+def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now().year,
+                                   targetdir = "results/dataoverview/",
+                                   basefilename = "projects_grouping",
+                                   incomegroups=['LDCs','LMICs','UMICs'],
+                                   filterzerocommitment = True):
+    """
+    create graph that group data into 
+    * Incomegroup + Sector
+    * Incomegroup + Sector + Purpose
+    * RecipientCountry + Sector 
+    * RecipientCountry + Sector + Purpose
+
+    @param idf (DataFrame): the inputDataFrame that shall be used as base for the images and json-files
+    @param startyear (int): select a specific year as start. for example 2011 to get graphs beginning at 1-1-2011 upto the end of the data
+    @param stopyear: select a specific year to end. for example 2018 to get graphs including data upto 31-12-2018 
+    @param targetdir: where to store the results. will be created if needed
+    @param filterzerocommitment: about 50% of the raw-data have not amount for the attribute 'USD_Commitment_Defl' per default those datapoints will be ignored
+    @param basefilename: the filename and format (based on extension) of the resulting image
+    @incomegroups: only consider the listed incomegroups. expects an array of IncomegroupNames. There are: LDCs,LMICs,MADCTs,Other LICs,Part I unallocated by income, UMICs. project specific per default only LDCs, LMICs and UMICs are taken into account. with None or empty array every group is considered
+
+    """
+
+    all_incomegroups = ["LDCs","LMICs","MADCTs","Other LICs","Part I unallocated by income", "UMICs"]
+    df = DataFrame()
+
+    # filter for needed features
+    for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl','SectorName','PurposeName','RecipientName']:
+        df[i] = idf[i]
+
+    if startyear:
+        df = df[df['CommitmentDate'] > datetime(year=startyear-1,month=12,day=31)]
+        targetdir = targetdir + "from_" + str(startyear) + "_"
+    if stopyear:
+        df = df[df['CommitmentDate'] < datetime(year=stopyear+1,month=1,day=1)]
+        targetdir = targetdir + "upto_" + str(stopyear) 
+    if startyear or stopyear:
+        targetdir = targetdir + "/"
+
+    df = df.drop(columns=['CommitmentDate'])
         
+    os.makedirs(targetdir,exist_ok=True)
+
+    if filterzerocommitment:
+        df = df[df['USD_Commitment_Defl'].notnull()]
+        df = df[df['USD_Commitment_Defl'] != 0.0]
+
+    if type(incomegroups) == type([]) and len(incomegroups) > 0:
+        df = df[df['IncomegroupName'].isin(incomegroups)]
+
+    
+    for i in [['IncomegroupName','SectorName'],
+              ['IncomegroupName','SectorName','PurposeName'],
+              ['RecipientName','SectorName'],
+              ['RecipientName','SectorName','PurposeName']]:
+
+        dfg = df.groupby(i).sum()
+        with open("%s%s-%s.json" %(targetdir,basefilename,"-".join(i)),"w") as fd:
+                fd.write(dfg.to_json(orient="index"))
+
+        dfg = dfg.reset_index()
+
+        fig = px.sunburst(dfg, path=i, values='USD_Commitment_Defl')
+        fig.write_image("%s%s-%s.png" %(targetdir,basefilename,"-".join(i)))
+
+
+    
 def generate_histograms_about_projectsize(idf,startyear = None, stopyear = datetime.now().year,
                                           targetdir = "results/dataoverview/",
                                           basefilename = "projects_commitsizes.png",
@@ -210,7 +277,6 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
 
     # resolve grouping, unstack, fill missing and reset_index()
     ddf = groupeddf.sum().unstack().fillna(0.0).reset_index()
-    print(ddf.head())
     # get a percent view in a new DataFrame
     df2 = DataFrame()
     for i in all_incomegroups:
@@ -278,7 +344,6 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
         try:
             df2[i]=ddf[i]
         except Exception as e:
-            print(e)
             pass
     df2['CommitmentYear'] = ddf.reset_index()['CommitmentDate'].apply(lambda x: str(x.year))
     
@@ -289,7 +354,6 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
         try:
             df2[i] = (df2[i] / countrytypesum[0]) * 100
         except Exception as e:
-            print(e)
             pass
     df2.replace([np.inf, -np.inf], np.nan, inplace=True) 
 
@@ -357,7 +421,7 @@ def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],
     if type(sectorcodes) == type([]) and len(sectorcodes) > 0:
         df = df[df['SectorCode'].isin(sectorcodes)]
         
-    if type(flowcodes) == type([]) and len(sectorcodes) > 0:
+    if type(flowcodes) == type([]) and len(flowcodes) > 0:
         df = df[df['FlowCode'].isin(flowcodes)]
 
     if type(recipientcodes) == type([]) and len(recipientcodes)> 0:
@@ -392,7 +456,7 @@ def save_micro_data(idf,
                    
 
 if __name__ == "__main__":
-    devel = False
+    devel = True
 
     # generate histogram over the full dataset
     if not devel:
@@ -441,13 +505,17 @@ if __name__ == "__main__":
             with open(filename, 'rb') as filehandler: 
                 df = pickle.load(filehandler)
         except:
-            #df = read_water_data(setname="playset")
-            df = read_water_data(setname="fullset")
+            df = read_water_data(setname="playset")
+            #df = read_water_data(setname="fullset")
             with open(filename, 'wb') as filehandler:
                 pickle.dump(df, filehandler)
         
-        generate_barchart_for_incomegroup_distribution(df,startyear=1980)
+        generate_sunburst_for_grouping(df,startyear=1980)
 
-        df = filter_donor_sector_flow_recipient(df)
-        generate_barchart_for_incomegroup_distribution(df,basefilename="water_incomegroups.png",startyear=1980)
+        df_focus = filter_donor_sector_flow_recipient(df)
+        generate_sunburst_for_grouping(df_focus,basefilename="water_projects_grouping",startyear=1980)
+
+        # germany in general
+        df_focus = filter_donor_sector_flow_recipient(df,sectorcodes=None,recipientcodes=None)
+        generate_sunburst_for_grouping(df_focus,basefilename="germany_projects_grouping",startyear=1980)
 

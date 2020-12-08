@@ -64,6 +64,9 @@ source bin/activate
 pip install pandas
 pip install matplotlib
 pip install numpy
+pip install kaleido
+pip install plotly
+pip install psutil
 </pre>
 
 then run
