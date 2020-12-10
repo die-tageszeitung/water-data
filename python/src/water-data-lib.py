@@ -44,41 +44,54 @@ def read_water_data(setname = "playset", datadir='data/'):
     @return: returns a pandas DataFrame with the data
     """
     df = DataFrame()
-    filelist = datasets[setname]
+
+    cached_df_filename = "%s%s.p" %(datadir,setname)
     
-    for i in filelist:
-        print("reading: %s/%s" %(datadir,i))
-        df = df.append(read_csv(datadir+i,sep="|",
-                                header=0,quotechar='"',
-                                encoding="iso8859_15",
-                                compression="zip",low_memory=False,
-                                dtype={
-                                    'DonorCode': np.unicode_,
-                                    'AgencyCode': np.unicode_,
-                                    'RecipientCode': np.unicode_,
-                                    'RegionCode': np.unicode_,
-                                    'IncomegroupCode': np.unicode_,
-                                    'FlowCode': np.unicode_,
-                                    'Bi_Multi': np.unicode_,
-                                    'Category': np.unicode_,
-                                    'Finance_t': np.unicode_,
-                                    'CrsID': np.unicode_,
-                                    'Aid_t': np.unicode_,
-                                    'ProjectNumber': np.unicode_,
-                                    'CurrencyCode': np.unicode_,
-                                    'PurposeCode': np.unicode_,
-                                    'SectorCode': np.unicode_,
-                                    'ChannelCode': np.unicode_,
-                                    'ParentChannelCode': np.unicode_,
-                                    'BudgetIdent': np.unicode_,
-                                    'Gender': np.unicode_,
-                                    'Environment': np.unicode_,
-                                    'PDGG': np.unicode_,
-                                    'Trade': np.unicode_,
-                                    'RMNCH': np.unicode_
-                                },
-                                parse_dates=["CommitmentDate",'ExpectedStartDate','Year',
-                                             'CompletionDate','Repaydate1','Repaydate2']))
+    try:
+        with open(cached_df_filename, 'rb') as fd:
+            print("Reading Datafrom cached file: %s" %(cached_df_filename))
+            df = pickle.load(fd)
+    except:
+    
+        filelist = datasets[setname]
+    
+        for i in filelist:
+            print("reading: %s/%s" %(datadir,i))
+            df = df.append(read_csv(datadir+i,sep="|",
+                                    header=0,quotechar='"',
+                                    encoding="iso8859_15",
+                                    compression="zip",low_memory=False,
+                                    dtype={
+                                        'DonorCode': np.unicode_,
+                                        'AgencyCode': np.unicode_,
+                                        'RecipientCode': np.unicode_,
+                                        'RegionCode': np.unicode_,
+                                        'IncomegroupCode': np.unicode_,
+                                        'FlowCode': np.unicode_,
+                                        'Bi_Multi': np.unicode_,
+                                        'Category': np.unicode_,
+                                        'Finance_t': np.unicode_,
+                                        'CrsID': np.unicode_,
+                                        'Aid_t': np.unicode_,
+                                        'ProjectNumber': np.unicode_,
+                                        'CurrencyCode': np.unicode_,
+                                        'PurposeCode': np.unicode_,
+                                        'SectorCode': np.unicode_,
+                                        'ChannelCode': np.unicode_,
+                                        'ParentChannelCode': np.unicode_,
+                                        'BudgetIdent': np.unicode_,
+                                        'Gender': np.unicode_,
+                                        'Environment': np.unicode_,
+                                        'PDGG': np.unicode_,
+                                        'Trade': np.unicode_,
+                                        'RMNCH': np.unicode_
+                                    },
+                                    parse_dates=["CommitmentDate",'ExpectedStartDate','Year',
+                                                 'CompletionDate','Repaydate1','Repaydate2']))
+        print("Writing cached_df_file: %s" %(cached_df_filename))
+        with open(cached_df_filename, 'wb') as fd:
+            pickle.dump(df, fd)
+
     return df
 
 def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now().year,
@@ -469,14 +482,7 @@ if __name__ == "__main__":
         # read the data respecting what is defined as "sane" set from the oecd
         # if a pickle file is present, load that instead
 
-        try:
-            with open(filename, 'rb') as filehandler: 
-                df = pickle.load(filehandler)
-        except:
-            #df = read_water_data(setname="playset")
-            df = read_water_data(setname="fullset")
-            with open(filename, 'wb') as filehandler:
-                pickle.dump(df, filehandler)
+        df = read_water_data(setname="fullset")
 
         # generate histogram over the full dataset
         generate_histograms_about_projectsize(df)
@@ -509,16 +515,7 @@ if __name__ == "__main__":
         save_micro_data(df,basefilename="microdata_selectedrecipients")
 
     else:
-        filename = "data/devel_df.p"
-        df = None
-        try:
-            with open(filename, 'rb') as filehandler: 
-                df = pickle.load(filehandler)
-        except:
-            df = read_water_data(setname="playset")
-            #df = read_water_data(setname="fullset")
-            with open(filename, 'wb') as filehandler:
-                pickle.dump(df, filehandler)
+        df = read_water_data(setname="playset")
         
         generate_sunburst_for_grouping(df,startyear=1980)
 
