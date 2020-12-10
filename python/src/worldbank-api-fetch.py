@@ -46,7 +46,7 @@ def fetch_series(series=['SI.SPR.PCAP','SI.POV.XPND.MD','SP.POP.TOTL','AG.SRF.TO
     """
     odf = DataFrame()
     for i in series:
-        df = DataFrame(wb.get_series(i, date="1980:2019",id_or_value='id', simplify_index=True))
+        df = DataFrame(wb.get_series(i, date=date,id_or_value='id', simplify_index=True))
         df = df[df[i].notnull()]
         if i in scale:
             df[i] = df[i] * scaleby
