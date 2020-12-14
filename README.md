@@ -2,7 +2,7 @@
 UCLab and tageszeitung joint project.
 # get the raw-data
 
-The rawdata was extracted from two sources. First the 'Microdata' of the OECD Creditor Reporting System (CRS1) which can be downloaded from their webpage
+The rawdata was extracted from two sources. First the 'Microdata' of the OECD Creditor Reporting System (CRS1) which can be downloaded/exported from their webpage ( https://stats.oecd.org/viewhtml.aspx?datasetcode=CRS1 )
 
     https://stats.oecd.org/FileView2.aspx?IDFile=82c8801d-641f-49ec-8ace-9e003224c3d1 crs1994-73.zip
     https://stats.oecd.org/FileView2.aspx?IDFile=c0c345b3-74e8-499d-a280-e8af7e3f47e2 crs1999-95.zip
@@ -24,7 +24,7 @@ The rawdata was extracted from two sources. First the 'Microdata' of the OECD Cr
     https://stats.oecd.org/FileView2.aspx?IDFile=ed94e89a-e81e-4718-ac69-2a51f5429657 crs2018.zip
     https://stats.oecd.org/FileView2.aspx?IDFile=2ae42512-f006-4fd0-92ed-b636f6c2583d crs2019.zip
 
-The 19 zip-files are about 513MB in total. That are about 3GB raw-csv-data resp. about 4.1 million entries. The data is encoded in iso8859_15, the columns are seperated by "|" and quoted by '"'.
+The 19 zip-files are about 513MB in total - at the time of download the last update was from 05.Nov 2020. They are about 3GB raw-csv-data resp. about 4.1 million entries. The data is encoded in iso8859_15, the columns are seperated by "|" and quoted by '"'.
 
 In this analyse only a part of the provided attributes are used:
 
@@ -67,6 +67,7 @@ pip install numpy
 pip install kaleido
 pip install plotly
 pip install psutil
+pip install world_bank_data
 </pre>
 
 then run
