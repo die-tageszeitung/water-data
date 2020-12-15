@@ -1,6 +1,7 @@
 ## taz + fhp - Money Flows
 
-#### What we know so far:
+#### Money pipelines: who is benefitting, who's handling the money, how much money and projects we are talking about
+
 There is a money pipeline.Funds go in all the way to the end point people it should help, through all these different actors (GIZ, consulting agencies, NGOs) which also get different percentagea of the money. We know certain countries activated more projects and/or received more moneys than others.
 
 We are considering these countries:
@@ -21,7 +22,7 @@ We are considering these countries:
 
 India, Kenya and Egypt are the ones benefitting the most. In general LMICs countries are getting basically half the money from 1980.
 
-![money_allocation](assets/money_allocation-onlycountries.png)
+![money_allocation](assets/money_allocation-01.png)
 
 #### Relevant questions:
 - Why certain countries are not benefitting this largely from funding?
@@ -32,7 +33,7 @@ India, Kenya and Egypt are the ones benefitting the most. In general LMICs count
 
 We have a very wide range of "Middleman" institutions providing the money. KfW is the major one, followed by Governmental institutions, NGOs and research/university institutions.
 
-![money_allocation](assets/money_allocation-companies.png)
+![](assets/money_allocation-02.png)
 
 #### Relevant questions:
 - What is the role of these institutions?
@@ -44,7 +45,7 @@ We have a very wide range of "Middleman" institutions providing the money. KfW i
 If we look at the distribution of individual projects in terms of money, we are immediately confronted with outliers. We have an handful of projects between 2012 and 2018 that have been granted considerable money.
 India, Bandladesh, Egypt, Ethiopia and Lebanon are the countries that received this money.
 
-![money_allocation](assets/distribution_projects.png)
+![money_allocation](assets/distribution_projects-01.png)
 
 Again it's interesting to see how:
 - The majority of projects receive a fairly fixed amount of money (usually between 20 and 40 MLN/euro).
