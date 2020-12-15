@@ -31,10 +31,10 @@
 }
 
 .leads {
-  margin-top: 80px;
-  background-color: rgba(230, 235, 255, 0.4);
-  border: 1px solid #4F60FF;
-  border-radius: 10px;
+  margin-top: 100px;
+  margin-bottom: 100px;
+  padding-left: 20px;
+  border-left: 1px solid #4F60FF;
 }
 
 .annotations {
