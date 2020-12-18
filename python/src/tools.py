@@ -5,8 +5,8 @@ import numpy as np
 from worldbankApi import get_regionnames
 import pickle
 
-
-worldbank_to_crs_countynames={
+# worldbank and creditor reporting system use different names for the countries
+worldbank_to_crs_countynames = {
     "Yemen, Rep.": "Yemen",
     "Vietnam": "Viet Nam",
     "Venezuela, RB": "Venezuela",
@@ -35,7 +35,7 @@ worldbank_to_crs_countynames={
 no_mapping_for_crs_countries = ['Montserrat','Cook Islands','Niue','Tokelau','Saint Lucia','Anguilla','Netherlands Antilles','Saint Helena','Mayotte','Chinese Taipei','Wallis and Futuna']
 no_mapping_for_worldbank_countries = ['Virgin Islands (U.S.)','Taiwan, China','Sint Maarten (Dutch part)','San Marino','Puerto Rico','St. Martin (French part)','Monaco','Isle of Man','Guam','Greenland','Faroe Islands','Curacao','American Samoa','Andorra','Channel Islands']
 
-crs_to_crs_worldbank = {v: k for k, v in worldbank_to_crs_countynames.items()}
+crs_to_worldbank_countrynames = {v: k for k, v in worldbank_to_crs_countynames.items()}
 
 datasets = {
     "fullset": ["crs1994-73.zip","crs1999-95.zip","crs2000-01.zip","crs2002-03.zip","crs2005-04.zip","crs2006.zip",
@@ -224,7 +224,12 @@ def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cac
                     how="inner",left_on="recipientmerge")
 
     # cleanup
-    odf.drop(columns=['_merge','Recipientstat mergefield','Donorstat mergefield','recipientmerge','donormerge'],inplace=True)
+    odf.drop(columns=['_merge','Recipientstat mergefield','Donorstat mergefield','recipientmerge',
+                      'donormerge','Donorstat index','Recipientstat index','Recipientstat Year',
+                      'Donorstat Year','Donorstat name','Recipientstat Country','Recipientstat name',
+                      'Donorstat Country'],
+             inplace=True)
+    odf.rename(columns={'Donorstat id': 'Donorstat iso3Code','Recipientstat id': 'Recipientstat iso3Code'},inplace=True)
     
     return odf
 

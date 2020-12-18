@@ -21,7 +21,7 @@ default_features=['DonorName','RecipientName','DonorCode','RecipientCode','Incom
                   'USD_Commitment_Defl','USD_Received_Defl','ShortDescription','AgencyName',
                   'FlowCode','SectorCode', 'ProjectTitle','PurposeName','SectorName',
                   'ChannelName','ChannelReportedName', 'ExpectedStartDate','CompletionDate',
-                  'LongDescription','CommitmentDate']
+                  'LongDescription','CommitmentDate','USD_GrantEquiv']
 
 
         
