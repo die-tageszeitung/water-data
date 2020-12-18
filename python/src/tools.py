@@ -144,7 +144,7 @@ def get_oecd_iso3_code_mapping(cachedir="data/cache", datadir="data/"):
 
         codenamemap = donors.append(recipients)
 
-        codenamemap.replace(inplace=True,to_replace=crs_to_crs_worldbank)
+        codenamemap.replace(inplace=True,to_replace=crs_to_worldbank_countrynames)
         dfmap = codenamemap.merge(wb_regions,how='outer',left_on='Name',right_on="name")
 
 
