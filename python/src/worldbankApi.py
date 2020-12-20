@@ -9,7 +9,7 @@ import plotly.express as px
 
 default_series=['SI.SPR.PCAP','SI.POV.XPND.MD','SP.POP.TOTL','AG.SRF.TOTL.K2']
 
-def get_all_countries(reverse=False,cachedir="data/cache"):
+def get_all_countries(reverse=False,cachedir="data/cache",includeaggs=False):
     """
     returns a mapping dict from country-codes used by the worldbank to the realnames.
     
@@ -22,8 +22,8 @@ def get_all_countries(reverse=False,cachedir="data/cache"):
     
     result = {}
     df = get_regionnames(cachedir=cachedir)
-    
-    df = df[df['region'] != "Aggregates"]
+    if includeaggs==False:
+        df = df[df['region'] != "Aggregates"]
     
     if reverse:
         for i, row in df.iterrows():
