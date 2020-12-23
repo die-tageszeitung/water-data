@@ -179,7 +179,7 @@ def extract_features(idf,features):
 
     return df
             
-def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cache"):
+def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cache",mergedonor=True, mergerecipient=True):
     """
     merges yearly stats from the worldbank with the microdata provided by the oecd based on a
     a country-code mapping. The dataenrichment is done for DonorCode and RecipientCode. The
@@ -188,6 +188,10 @@ def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cac
 
     @param ioecddf: a DataFrame with the microdata from oecd containing 
     @param iwbdf: a DataFrame containing stat-series from the worldbank
+    @param codemapping: a mapping from oecd-country-codes to iso3 country codes used by worldbank
+    @param cachedir: where to store/find cached data
+    @param mergedonor: per default the worldbank data is merged on donorcountry
+    @param mergerecipient: per default the worldbank data is merged on recipientcountry
 
     @return: a DataFrame with enrichments for the Donor and Recipient
     """
@@ -195,41 +199,47 @@ def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cac
     odf = pd.DataFrame()
     
     # first we kick out everything that cannot be merged, b/c it's not in the mapping
-    oecddf = ioecddf[ioecddf['DonorCode'].isin(list(codemapping))]
-    oecddf = oecddf[oecddf['RecipientCode'].isin(list(codemapping))]
-
+    oecddf = ioecddf.copy()
+    if mergedonor:
+        oecddf = ioecddf[ioecddf['DonorCode'].isin(list(codemapping))]
+    #print(oecddf.describe())
+    if mergerecipient:
+        oecddf = oecddf[oecddf['RecipientCode'].isin(list(codemapping))]
+    #print(oecddf.describe())
     wbdf = iwbdf[iwbdf['Country'].isin(list(codemapping))].reset_index()
+    #print(wbdf.describe())
 
     # merge some additional infos about the countries from country-data
     cdf = get_regionnames(cachedir=cachedir)
     wbdf = wbdf.merge(cdf, right_on="id", how="left", left_on="Country")
+    #print(wbdf.describe())
     
     # create a mergefield on worldbank data
     wbdf['mergefield'] = wbdf['Year'].apply(lambda x: str(x))
     wbdf['mergefield'] = wbdf['mergefield'] + wbdf['id']
     
+    odf = oecddf.copy()
     
     # create two mergefields for Donor and Recipients
-    oecddf['donormerge'] = oecddf['CommitmentDate'].apply(lambda x: str(x.year))
-    oecddf['donormerge'] = oecddf['donormerge'] + oecddf['DonorCode'].apply(lambda x: str(codemapping[x]))
+    if mergedonor:
+        odf['donormerge'] = odf['CommitmentDate'].apply(lambda x: str(x.year))
+        odf['donormerge'] = odf['donormerge'] + odf['DonorCode'].apply(lambda x: str(codemapping[x]))
+        odf = odf.merge(wbdf.add_prefix("Donorstat "),
+                        right_on='Donorstat mergefield',
+                        how="inner",left_on='donormerge')
+        odf.drop(columns=['Donorstat mergefield','donormerge','Donorstat index','Donorstat Year','Donorstat name','Recipientstat name','Donorstat Country'],inplace=True)
+        odf.rename(columns={'Donorstat id': 'Donorstat iso3Code'},inplace=True)
 
-    oecddf['recipientmerge'] = oecddf['CommitmentDate'].apply(lambda x: str(x.year))
-    oecddf['recipientmerge'] = oecddf['recipientmerge'] + oecddf['RecipientCode'].apply(lambda x: str(codemapping[x]))
-    odf = oecddf.merge(wbdf.add_prefix("Donorstat "),
-                       right_on='Donorstat mergefield',
-                       how="inner",left_on='donormerge',indicator=True)
+    if mergerecipient:
+        odf['recipientmerge'] = odf['CommitmentDate'].apply(lambda x: str(x.year))
+        odf['recipientmerge'] = odf['recipientmerge'] + odf['RecipientCode'].apply(lambda x: str(codemapping[x]))
+        odf = odf.merge(wbdf.add_prefix("Recipientstat "),
+                        right_on='Recipientstat mergefield',
+                        how="inner",left_on="recipientmerge")
+        odf.drop(columns=['Recipientstat mergefield','recipientmerge','Recipientstat index','Recipientstat Year','Recipientstat Country'],inplace=True)
+        odf.rename(columns={'Recipientstat id': 'Recipientstat iso3Code'},inplace=True)
 
-    odf = odf.merge(wbdf.add_prefix("Recipientstat "),
-                    right_on='Recipientstat mergefield',
-                    how="inner",left_on="recipientmerge")
-
-    # cleanup
-    odf.drop(columns=['_merge','Recipientstat mergefield','Donorstat mergefield','recipientmerge',
-                      'donormerge','Donorstat index','Recipientstat index','Recipientstat Year',
-                      'Donorstat Year','Donorstat name','Recipientstat Country','Recipientstat name',
-                      'Donorstat Country'],
-             inplace=True)
-    odf.rename(columns={'Donorstat id': 'Donorstat iso3Code','Recipientstat id': 'Recipientstat iso3Code'},inplace=True)
+    
     
     return odf
 
