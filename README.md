@@ -52,6 +52,7 @@ The data can be downloaded by executing fetchdata.sh. The script will create the
 
 # other links
 https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/dacandcrscodelists.htm
+https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/informationnoteonthedacdeflators.htm
 
 # quicksetup for up python env
 
