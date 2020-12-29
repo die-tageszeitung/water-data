@@ -227,7 +227,7 @@ def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cac
         odf = odf.merge(wbdf.add_prefix("Donorstat "),
                         right_on='Donorstat mergefield',
                         how="inner",left_on='donormerge')
-        odf.drop(columns=['Donorstat mergefield','donormerge','Donorstat index','Donorstat Year','Donorstat name','Recipientstat name','Donorstat Country'],inplace=True)
+        odf.drop(columns=['Donorstat mergefield','donormerge','Donorstat index','Donorstat Year','Donorstat name','Donorstat Country'],inplace=True)
         odf.rename(columns={'Donorstat id': 'Donorstat iso3Code'},inplace=True)
 
     if mergerecipient:
