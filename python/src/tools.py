@@ -5,6 +5,7 @@ import numpy as np
 from worldbankApi import get_regionnames
 import pickle
 
+
 # worldbank and creditor reporting system use different names for the countries
 worldbank_to_crs_countynames = {
     "Yemen, Rep.": "Yemen",
@@ -178,7 +179,72 @@ def extract_features(idf,features):
             
 
     return df
-            
+
+def apply_historical_incomegroups_wb(ioecddf,oecd_iso3,
+                                     datadir="data/",datafilename="OGHIST.csv",
+                                     datefeature="CommitmentDate",useindex=False,
+                                     valuemap={'L': 'LDCs','LM': 'LMICs', 'UM':'UMICs','H': 'HICs', 'LM*':'LMICs'}
+                                     ):
+    """
+    The Incomegroup classification of the oecd for counties is stated as "active data", meaning it's a feature
+    that changes every year for some countries. further more the classification used by the oecd is based on the
+    UN-list of LDCs while filling the gaps with delayed data from the worldbank. This leads to some problems 
+    regarding historical data. This function merges the historical classification data provided by the worldbank 
+    with the oecd-microdata. see: https://datahelpdesk.worldbank.org/knowledgebase/articles/378834-how-does-the-world-bank-classify-countries . Classificationdata is expected as a csv-file in the format 
+       "id";"Country";1987;1988;1989;...
+    where "id" is the iso3code of the country and "Country" is the speaking name. Missing values are backfilled.
+
+    @param ioecddf: microdata-Dataframe of oecd
+    @param oecd_iso3: the mapping from oecd-country-codes to iso3-country-codes
+    @param datadir: the directory where to find the historical classification data.
+    @param datafilename: the filename of the historical classification
+    @param datefeature: which feature to use to merge on - must be a datetime-feature
+    @param useindex: if True, the datefeature is ignored and the index is used to group by year
+    @param valuemap: the historical data uses different values for classification then the oecd, mapping is used to replace them.
+    
+    """
+    # read the historical classification in Incomegroups from the worldbank
+    icgroup_df = pd.read_csv(datadir+datafilename,header=0,quotechar='"',low_memory=False,sep=";",na_values=['..'])
+
+    # the historical data some datapoints
+    # fill missing values with the value from the next valid year 
+    # this is a little dirty in code
+    T = icgroup_df.T
+    T = T.fillna(method ='backfill') 
+
+    icgroup_df = T.T
+    icgroup_df = icgroup_df.melt(id_vars=('id','Country'),var_name="Year")
+
+    # replace the values used for classification with the values used by oecd
+    icgroup_df = icgroup_df.replace({'value': valuemap})
+    icgroup_df = icgroup_df.replace({'id': oecd_iso3})
+
+    # give it a nice name
+    icgroup_df = icgroup_df.rename(columns={'value': 'IncomeGroup (WB)'})
+    # create a mergeable unique feature
+    icgroup_df['mergefield'] = icgroup_df['Year'].apply(lambda x: str(x))
+    icgroup_df['mergefield'] = icgroup_df['mergefield'] + icgroup_df['id']
+
+    # create index if needed
+    df = None
+    if useindex:
+        df = ioecddf.copy()
+    else:
+        df = ioecddf.set_index(datefeature).copy()
+
+    # create a mergefield within the dataframe
+    df['mergefield'] = [ "%.0f" %(x) for x in df.index.year]
+    df['mergefield'] = df['mergefield'] + df['RecipientCode']
+    #display(df.sample())
+    df = df.merge(icgroup_df.add_prefix("worldbank "),
+                  right_on='worldbank mergefield',
+                  how="left",left_on='mergefield',indicator=True)
+    df.drop(columns=['mergefield','worldbank id','worldbank Country',
+                     'worldbank Year','worldbank mergefield','_merge'],inplace=True)
+
+    return df
+
+
 def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cache",mergedonor=True, mergerecipient=True):
     """
     merges yearly stats from the worldbank with the microdata provided by the oecd based on a
@@ -226,7 +292,7 @@ def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cac
         odf['donormerge'] = odf['donormerge'] + odf['DonorCode'].apply(lambda x: str(codemapping[x]))
         odf = odf.merge(wbdf.add_prefix("Donorstat "),
                         right_on='Donorstat mergefield',
-                        how="inner",left_on='donormerge')
+                        how="left",left_on='donormerge')
         odf.drop(columns=['Donorstat mergefield','donormerge','Donorstat index','Donorstat Year','Donorstat name','Donorstat Country'],inplace=True)
         odf.rename(columns={'Donorstat id': 'Donorstat iso3Code'},inplace=True)
 
@@ -235,7 +301,7 @@ def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cac
         odf['recipientmerge'] = odf['recipientmerge'] + odf['RecipientCode'].apply(lambda x: str(codemapping[x]))
         odf = odf.merge(wbdf.add_prefix("Recipientstat "),
                         right_on='Recipientstat mergefield',
-                        how="inner",left_on="recipientmerge")
+                        how="left",left_on="recipientmerge")
         odf.drop(columns=['Recipientstat mergefield','recipientmerge','Recipientstat index','Recipientstat Year','Recipientstat Country'],inplace=True)
         odf.rename(columns={'Recipientstat id': 'Recipientstat iso3Code'},inplace=True)
 
