@@ -159,6 +159,79 @@ def get_oecd_iso3_code_mapping(cachedir="data/cache", datadir="data/"):
             pickle.dump(crs_wb_country_idmap, fd)
 
     finally:
+        # adding some values that are (maybe) missing in the datasets
+        #AIA Anguilla 
+        crs_wb_country_idmap['376'] = 'AIA' 
+        crs_wb_country_idmap['AIA'] = '376'
+        # COK Cook Islands 
+        crs_wb_country_idmap['831'] = 'COK'
+        crs_wb_country_idmap['COK'] = '831'
+        # FLK Falkland Islands (Malvinas) 
+        crs_wb_country_idmap['443'] = 'FLK'
+        crs_wb_country_idmap['FLK'] = '443'
+        # MYT Mayotte
+        crs_wb_country_idmap['258'] = 'MYT'
+        crs_wb_country_idmap['MYT'] = '258'
+        # MSR Montserrat 
+        crs_wb_country_idmap['385'] = 'MSR'
+        crs_wb_country_idmap['MSR'] = '385'
+        # ANT Netherlands Antilles 
+        crs_wb_country_idmap['361'] = 'ANT'
+        crs_wb_country_idmap['ANT'] = '361'
+        # NIU Niue 
+        crs_wb_country_idmap['856'] = 'NIU'
+        crs_wb_country_idmap['NIU'] = '856'
+        # SHN Saint Helena, Ascension and Tristan da Cunha 
+        crs_wb_country_idmap['276'] = 'SHN'
+        crs_wb_country_idmap['SHN'] = '276'
+        # TKL Tokelau 
+        crs_wb_country_idmap['868'] = 'TKL'
+        crs_wb_country_idmap['TKL'] = '868'
+        # WLF Wallis and Futuna 
+        crs_wb_country_idmap['876'] = 'WLF'
+        crs_wb_country_idmap['WLF'] = '876'
+        # MKD Macedonia, the former Yugoslav Republic of 
+        crs_wb_country_idmap['88'] = 'MKD'
+        crs_wb_country_idmap['MKD'] = '88'
+        # SVK Slovakia
+        crs_wb_country_idmap['69'] = 'SVK'
+        crs_wb_country_idmap['SVK'] = '69'
+        # SWZ Swaziland  / Eswatini
+        crs_wb_country_idmap['280'] = 'SWZ'
+        crs_wb_country_idmap['SWZ'] = '280'
+        # HUN Hungary 
+        crs_wb_country_idmap['75'] = 'HUN'
+        crs_wb_country_idmap['HUN'] = '75'
+        # EST Estonia
+        crs_wb_country_idmap['82'] = 'EST'
+        crs_wb_country_idmap['EST'] = '82'
+        # CZE Czech Republic
+        crs_wb_country_idmap['68'] = 'CZE'
+        crs_wb_country_idmap['CZE'] = '68'
+        # BGR Bulgaria 
+        crs_wb_country_idmap['72'] = 'BGR'
+        crs_wb_country_idmap['BGR'] = '72'
+        
+
+        ####### no ISO3Codes for regions
+        # Africa, America, Asia, Bilateral, Caribbean & Central America, Caribbean,
+        # Central America, Central Asia, East African Community, Eastern Africa, Europe,
+        # Far East Asia, Melanesia, Middle Africa, Middle East, North of Sahara, Oceania,
+        # South & Central Asia, South America, South Asia, South of Sahara, Southern Africa,
+        # Western Africa
+        
+        #for i in ['298','498','798','9998','389','1031','1032','619','237','1027','89','789',
+        #          '1033','1028','589','189','889','689','489','679','289','1029','1030']:
+        #    crs_wb_country_idmap[i]=""
+
+        # Chinese Taipei - no iso3code
+        #crs_wb_country_idmap['732'] = ""
+
+        # generic catch
+        #crs_wb_country_idmap[''] = ''
+        #crs_wb_country_idmap[np.nan] = ''
+        
+        
         return crs_wb_country_idmap
 
 
