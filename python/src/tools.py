@@ -69,7 +69,7 @@ def read_water_data(setname = "playset", datadir='data/', datasets=datasets,cach
     df = pd.DataFrame()
 
     cached_df_filename = "%s/%s.p" %(cachedir,setname)
-    
+    os.makedirs(cachedir,exist_ok=True)    
     try:
         with open(cached_df_filename, 'rb') as fd:
             print("Reading Datafrom cached file: %s" %(cached_df_filename))
