@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from worldbankApi import get_regionnames
 import pickle
+import os
 
 # worldbank and creditor reporting system use different names for the countries
 worldbank_to_crs_countynames = {
