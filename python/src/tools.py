@@ -211,7 +211,12 @@ def get_oecd_iso3_code_mapping(cachedir="data/cache", datadir="data/"):
         # BGR Bulgaria 
         crs_wb_country_idmap['72'] = 'BGR'
         crs_wb_country_idmap['BGR'] = '72'
-        
+        # LVA Latvia 
+        crs_wb_country_idmap['83'] = 'LVA'
+        crs_wb_country_idmap['LVA'] = '83'
+        # LTU Lithuania
+        crs_wb_country_idmap['84'] = 'LTU'
+        crs_wb_country_idmap['LTU'] = '84'
 
         ####### no ISO3Codes for regions
         # Africa, America, Asia, Bilateral, Caribbean & Central America, Caribbean,
