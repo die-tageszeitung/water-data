@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from worldbankApi import get_regionnames
 import pickle
+import os
 
 
 # worldbank and creditor reporting system use different names for the countries
@@ -70,7 +71,6 @@ def read_water_data(setname = "playset", datadir='data/', datasets=datasets,cach
     df = pd.DataFrame()
 
     cached_df_filename = "%s/%s.p" %(cachedir,setname)
-    
     try:
         with open(cached_df_filename, 'rb') as fd:
             print("Reading Datafrom cached file: %s" %(cached_df_filename))
@@ -113,6 +113,8 @@ def read_water_data(setname = "playset", datadir='data/', datasets=datasets,cach
                                        parse_dates=["CommitmentDate",'ExpectedStartDate','Year',
                                                     'CompletionDate','Repaydate1','Repaydate2']))
         print("Writing cached_df_file: %s" %(cached_df_filename))
+        os.makedirs(cachedir,exist_ok=True)    
+
         with open(cached_df_filename, 'wb') as fd:
             pickle.dump(df, fd)
 
