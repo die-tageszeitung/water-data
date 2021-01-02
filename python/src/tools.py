@@ -262,8 +262,14 @@ def extract_features(idf,features):
 
 def apply_historical_incomegroups_wb(ioecddf,oecd_iso3,
                                      datadir="data/",datafilename="OGHIST.csv",
-                                     datefeature="CommitmentDate",useindex=False,
-                                     valuemap={'L': 'LDCs','LM': 'LMICs', 'UM':'UMICs','H': 'HICs', 'LM*':'LMICs'}
+                                     datefeature="CommitmentDate",
+                                     oecdidfeature="RecipientCode",
+                                     targetname="IncomegroupName (WB)",
+                                     valuemap={'L': 'LDCs',
+                                               'LM': 'LMICs',
+                                               'UM':'UMICs',
+                                               'H': 'HICs',
+                                               'LM*':'LMICs'}
                                      ):
     """
     The Incomegroup classification of the oecd for counties is stated as "active data", meaning it's a feature
@@ -279,8 +285,10 @@ def apply_historical_incomegroups_wb(ioecddf,oecd_iso3,
     @param datadir: the directory where to find the historical classification data.
     @param datafilename: the filename of the historical classification
     @param datefeature: which feature to use to merge on - must be a datetime-feature
-    @param useindex: if True, the datefeature is ignored and the index is used to group by year
     @param valuemap: the historical data uses different values for classification then the oecd, mapping is used to replace them.
+    @param oecdidfeature: the feature to as countriecodes
+    @param targetname: how to name the new feature
+
     
     """
     # read the historical classification in Incomegroups from the worldbank
@@ -299,31 +307,74 @@ def apply_historical_incomegroups_wb(ioecddf,oecd_iso3,
     icgroup_df = icgroup_df.replace({'value': valuemap})
     icgroup_df = icgroup_df.replace({'id': oecd_iso3})
 
-    # give it a nice name
-    icgroup_df = icgroup_df.rename(columns={'value': 'IncomeGroup (WB)'})
     # create a mergeable unique feature
     icgroup_df['mergefield'] = icgroup_df['Year'].apply(lambda x: str(x))
     icgroup_df['mergefield'] = icgroup_df['mergefield'] + icgroup_df['id']
 
-    # create index if needed
-    df = None
-    if useindex:
-        df = ioecddf.copy()
-    else:
-        df = ioecddf.set_index(datefeature).copy()
+    df = ioecddf.copy()
+        
 
     # create a mergefield within the dataframe
-    df['mergefield'] = [ "%.0f" %(x) for x in df.index.year]
-    df['mergefield'] = df['mergefield'] + df['RecipientCode']
+    df['mergefield'] = df[datefeature].apply(lambda x: "%.0f" %(x.year)) # NaN cannot be converted to Int
+    df['mergefield'] = df['mergefield'] + df[oecdidfeature]
     #display(df.sample())
     df = df.merge(icgroup_df.add_prefix("worldbank "),
                   right_on='worldbank mergefield',
                   how="left",left_on='mergefield',indicator=True)
     df.drop(columns=['mergefield','worldbank id','worldbank Country',
                      'worldbank Year','worldbank mergefield','_merge'],inplace=True)
+    df.rename(columns={'worldbank value': targetname},inplace=True)
 
     return df
 
+def apply_historical_incomegroups_oecd(ioecddf,
+                                       datadir="data/",datafilename="oecd-incomegroup-history.csv",
+                                       datefeature="CommitmentDate",useindex=False,
+                                       oecdidfeature="RecipientCode",
+                                       targetname="IncomegroupName (oecd hist)",
+                                       valuemap = {
+                                           "High Income Countries": "HICs",
+                                           "Least Developed Countries": "LDCs",
+                                           "Lower Middle Income Countries": "LMICs",
+                                           "More Advanced Developing Countries and Territories": "MADCTs",
+                                           "Other Low Income Countries": "Other LICs",
+                                           "Upper Middle Income Countries": "UMICs"}
+                                     ):
+    """
+    add the historical incomegroup classification data to the oecd-dataframe
+
+    @param ioecddf: microdata-Dataframe of oecd
+    @param datadir: the directory where to find the historical classification data.
+    @param datafilename: the filename of the historical classification
+    @param datefeature: which feature to use to merge on - must be a datetime-feature
+    @param valuemap: the historical data uses different values for classification then the oecd. the mapping is used to replace them.
+    @param oecdidfeature: the feature to as countriecodes
+    @param targetname: how to name the new feature
+
+    @return: a copy of the original 'ioecddf' with the new feature 'targetname'
+    """
+
+    df = ioecddf.copy()
+    df['mergefield'] = df[datefeature].apply(lambda x: "%.0f" %(x.year))
+    df['mergefield'] = df['mergefield'] + df[oecdidfeature]
+    
+    hist_oecd_ig=pd.read_csv(filepath_or_buffer=datadir + datafilename,
+                             dtype={'year': np.unicode_, 'RecipientCode': np.unicode_},
+                             usecols=['year','incomegroup','RecipientCode'],
+                             delimiter=";")
+    hist_oecd_ig.replace({'incomegroup': valuemap},inplace=True)
+
+    hist_oecd_ig.rename(inplace=True,
+                        columns={'incomegroup': targetname,'RecipientCode':'hist_oecd_ig_id'})
+
+    hist_oecd_ig['mergefield'] = hist_oecd_ig['year'] 
+    hist_oecd_ig['mergefield'] = hist_oecd_ig['mergefield'] + hist_oecd_ig['hist_oecd_ig_id']
+    hist_oecd_ig.drop(columns=['hist_oecd_ig_id','year'],inplace=True)
+
+    df = df.merge(hist_oecd_ig,on="mergefield",how="left")
+    df.drop(columns=['mergefield'],inplace=True)
+    return df
+            
 
 def merge_wbseries_with_oecd_data(ioecddf, iwbdf, codemapping,cachedir="data/cache",mergedonor=True, mergerecipient=True):
     """
