@@ -87,6 +87,7 @@ def read_water_data(setname = "playset", datadir='data/', datasets=datasets,cach
                                        compression="zip",low_memory=False,
                                        dtype={
                                            'DonorCode': np.unicode_,
+                                           'InitialReport': np.unicode_,
                                            'AgencyCode': np.unicode_,
                                            'RecipientCode': np.unicode_,
                                            'RegionCode': np.unicode_,
@@ -100,6 +101,7 @@ def read_water_data(setname = "playset", datadir='data/', datasets=datasets,cach
                                            'ProjectNumber': np.unicode_,
                                            'CurrencyCode': np.unicode_,
                                            'PurposeCode': np.unicode_,
+                                           'SDGfocus': np.unicode_,
                                            'SectorCode': np.unicode_,
                                            'ChannelCode': np.unicode_,
                                            'ParentChannelCode': np.unicode_,
