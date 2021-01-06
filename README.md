@@ -50,6 +50,10 @@ In this analyse only a part of the provided attributes are used:
 
 The data can be downloaded by executing fetchdata.sh. The script will create the directory 'data' and store the zipfiles under the name referrenced in the scripts.
 
+# other links
+https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/dacandcrscodelists.htm
+https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/informationnoteonthedacdeflators.htm
+
 # quicksetup for up python env
 
 <pre>

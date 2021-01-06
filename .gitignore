@@ -2,6 +2,7 @@
 
 results/
 quick prototyping/
+ipynb_notebooks/data/cache/
 
 
 # from here an it's generic ignores
