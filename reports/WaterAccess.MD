@@ -4,7 +4,7 @@
 (For data and analysis refer to this [Python Notebook](../ipynb_notebooks/02.tellmeabout_MillenniumDevelopmentGoals.ipynb))
 We import Millenium Development Goals data from the World Bank API to check if the access to clean and safe water develops over time.
 
-#### How many people have access to safely managed water sources?
+### How many people have access to safely managed water sources?
 
 ![money_allocation](assets/Global_safelymanaged-01.png)
 
