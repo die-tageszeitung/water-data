@@ -1,6 +1,8 @@
-## taz + fhp - Money Flows
+## The History of German ODA's money
+#### [taz + fhp folgt dem wasser](https://taz.de/!t5713683/)
 
-#### Funding strategies: time development in providing funds, funding strategies, missing data
+#### time development in providing funds, missing data, overview on countries
+This seems to be the very basis and backbone of what we need for the reader – an overview at what Germany spent in the water sector in all ODA recipient countries. We concentrate on the timespan **2002-2017**, since there were so many problems with the data before 2002 and after 2018. Missing entries in the years **before 2002** will make the data hard to compare before that. Also OECD changed the way ODA was measured significantly in the last years with the implementation of the so-called „grant equivalent system“ in 2019 for 2018 reporting.
 
 There are interesting dates that mark possible changes in the way funds are allocated:
 - adoption of Millenium Development Goals **2010**
@@ -8,9 +10,7 @@ There are interesting dates that mark possible changes in the way funds are allo
 - adoption of the Sustainable Development Goals in **2015**
 - the new Water strategy of the Federal Ministry for Economic Cooperation and Development (BMZ) in **2017**
 
-We can take a look more broadly to how the situation developed over time by observing the number of fundings and projects for each year, starting from the beginning of the dataset.
-
-![](assets/historical_money.png)
+![](assets/all_years_split.png)
 
 We see spikes in 1994, 2001, 2012 and 2018.
 We see negative trends in 1993, 2003 and 2006.
