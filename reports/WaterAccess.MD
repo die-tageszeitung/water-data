@@ -13,6 +13,8 @@ The overall trend is positive. LMICs and LDCs (in red) suffered decreasing acces
 ##### LMICs
 ![money_allocation](assets/Global_safelymanaged-02.png)
 
+Hi Francesca, were you talking about this when you mentioned you also saw problems with countries changing income classification? I think here we have the opposite problem of what we had in the historical change report: For example, it would seem as if Nicaragua lost all access to safe water after 2004 – but of course, they only changed classification. Maybe we can talk about it on our meeting on the 5th and see how we go about it?
+
 ##### LDCs
 ![money_allocation](assets/Global_safelymanaged-03.png)
 
