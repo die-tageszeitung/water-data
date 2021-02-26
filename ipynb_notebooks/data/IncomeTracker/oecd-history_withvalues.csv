@@ -717,15 +717,15 @@ China (People's Republic of),2016,UMICs,730,CHN,5
 China (People's Republic of),2017,UMICs,730,CHN,5
 China (People's Republic of),2018,UMICs,730,CHN,5
 China (People's Republic of),2019,UMICs,730,CHN,5
-Chinese Taipei,1996,HICs,732,,6
-Chinese Taipei,1997,MADCTs,732,,4
-Chinese Taipei,1998,MADCTs,732,,4
-Chinese Taipei,1999,MADCTs,732,,4
-Chinese Taipei,2000,MADCTs,732,,4
-Chinese Taipei,2001,MADCTs,732,,4
-Chinese Taipei,2002,MADCTs,732,,4
-Chinese Taipei,2003,MADCTs,732,,4
-Chinese Taipei,2004,MADCTs,732,,4
+Chinese Taipei,1996,HICs,732,TAIPEI,6
+Chinese Taipei,1997,MADCTs,732,TAIPEI,4
+Chinese Taipei,1998,MADCTs,732,TAIPEI,4
+Chinese Taipei,1999,MADCTs,732,TAIPEI,4
+Chinese Taipei,2000,MADCTs,732,TAIPEI,4
+Chinese Taipei,2001,MADCTs,732,TAIPEI,4
+Chinese Taipei,2002,MADCTs,732,TAIPEI,4
+Chinese Taipei,2003,MADCTs,732,TAIPEI,4
+Chinese Taipei,2004,MADCTs,732,TAIPEI,4
 Colombia,1996,LMICs,437,COL,3
 Colombia,1997,LMICs,437,COL,3
 Colombia,1998,LMICs,437,COL,3
@@ -2685,21 +2685,6 @@ Palau,2016,UMICs,861,PLW,5
 Palau,2017,UMICs,861,PLW,5
 Palau,2018,UMICs,861,PLW,5
 Palau,2019,UMICs,861,PLW,5
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
 Panama,1996,LMICs,366,PAN,3
 Panama,1997,UMICs,366,PAN,5
 Panama,1998,UMICs,366,PAN,5
