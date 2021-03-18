@@ -3,7 +3,7 @@
 results/
 quick prototyping/
 ipynb_notebooks/data/cache/
-
+data/cache/
 
 # from here an it's generic ignores
 
