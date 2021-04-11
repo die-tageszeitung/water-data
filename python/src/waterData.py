@@ -415,7 +415,7 @@ if __name__ == "__main__":
     devel = False
 
     # generate histogram over the full dataset
-    for valuename in ['USD_Commitment_Defl','USD_Disbursement_Defl']:
+    for valuename in ['USD_Commitment_Defl','USD_Disbursement_Defl','USD_GrantEquiv']:
 
         if not devel:
             df = None
