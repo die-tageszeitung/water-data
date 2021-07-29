@@ -30,6 +30,7 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
                                    targetdir = "results/dataoverview/",
                                    basefilename = "projects_grouping",
                                    incomegroups=['LDCs','LMICs','UMICs'],
+                                   valuename='USD_Commitment_Defl',
                                    filterzerocommitment = True):
     """
     create graph that group data into
@@ -43,6 +44,7 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
     @param stopyear: select a specific year to end. for example 2018 to get graphs including data upto 31-12-2018
     @param targetdir: where to store the results. will be created if needed
     @param filterzerocommitment: about 50% of the raw-data have not amount for the attribute 'USD_Commitment_Defl' per default those datapoints will be ignored
+    @param valuename: the name of the feature/column to use. defaults to 'USD_Commitment_Defl'
     @param basefilename: the filename and format (based on extension) of the resulting image
     @incomegroups: only consider the listed incomegroups. expects an array of IncomegroupNames. There are: LDCs,LMICs,MADCTs,Other LICs,Part I unallocated by income, UMICs. project specific per default only LDCs, LMICs and UMICs are taken into account. with None or empty array every group is considered
 
@@ -52,7 +54,7 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
     df = DataFrame()
 
     # filter for needed features
-    for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl','SectorName','PurposeName','RecipientName','AgencyName']:
+    for i in ['CommitmentDate','IncomegroupName',valuename,'SectorName','PurposeName','RecipientName','AgencyName']:
         df[i] = idf[i]
 
     if startyear:
@@ -69,8 +71,8 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
     os.makedirs(targetdir,exist_ok=True)
 
     if filterzerocommitment:
-        df = df[df['USD_Commitment_Defl'].notnull()]
-        df = df[df['USD_Commitment_Defl'] != 0.0]
+        df = df[df[valuename].notnull()]
+        df = df[df[valuename] != 0.0]
 
     if type(incomegroups) == type([]) and len(incomegroups) > 0:
         df = df[df['IncomegroupName'].isin(incomegroups)]
@@ -91,7 +93,7 @@ def generate_sunburst_for_grouping(idf,startyear = None, stopyear = datetime.now
         with open("%s%s-%s.json" %(targetdir,basefilename,"-".join(i)),"w") as fd:
                 fd.write(dfg.to_json(orient="index"))
 
-        fig = px.sunburst(dfg, path=i, values='USD_Commitment_Defl')
+        fig = px.sunburst(dfg, path=i, values=valuename)
         fig.write_image("%s%s-%s.png" %(targetdir,basefilename,"-".join(i)),scale=3)
 
 
@@ -100,6 +102,7 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = datet
                                           targetdir = "results/dataoverview/",
                                           basefilename = "projects_commitsizes.png",
                                           filterzerocommitment = True,
+                                          valuename="USD_Commitment_Defl",
                                           bins = 50, subplotwidth = 7, ncols = 3,
                                           windowsize = [("-inf",0.0),(0.0,"inf"),(0.0,8.0),(0.0,3.0),
                                                         (0.0,1.0),(0.0,0.2),("-inf",-0.2),(1.0,60.0),
@@ -117,6 +120,7 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = datet
     @param filterzerocommitment: about 50% of the raw-data have not amount for the attribute 'USD_Commitment_Defl' per default those datapoints will be ignored
     @param windowsize: different projectsizes the graphs should show - an array of tupels. first value of the tupel defines the lower bound (value must be greater to be shown)
                        second value defines the upper bound (value must be smaller then this to be shown)
+    @param valuename: Defaults to USD_Commitment_Defl
     @param bins: how many buckets shall be created
     @param subplitwidth: width and height of a singe subplot
     @param ncols: number of subplots per row in the graph
@@ -156,12 +160,12 @@ def generate_histograms_about_projectsize(idf,startyear = None, stopyear = datet
         projectcount = df['USD_Commitment_Defl'].count()
         commitsum = df['USD_Commitment_Defl'].sum()
 
-        df['USD_Commitment_Defl'].plot(kind='hist',grid=True,ax=axes[int(i/ncols)][i % ncols],bins=bins,
+        df[valuename].plot(kind='hist',grid=True,ax=axes[int(i/ncols)][i % ncols],bins=bins,
                                       title=" %.2f < x < %.2f \n %d projects with total of %.2f mUSD" % (np.float64(win[0]),np.float64(win[1]),projectcount,commitsum))
         # create a json_file with the plotdata - XXX don't calculate the bins twice
 
-        if df['USD_Commitment_Defl'].count() > 0:
-            dfh=pd.cut(df['USD_Commitment_Defl'],bins=bins).value_counts()
+        if df[valuename].count() > 0:
+            dfh=pd.cut(df[valuename],bins=bins).value_counts()
             with open("%s%s-%.2f-%.2f.json" %(targetdir,basefilename,np.float64(win[0]),np.float64(win[1])),"w") as fd:
                 fd.write(dfh.to_json(orient="index"))
 
@@ -175,6 +179,7 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
                                                    targetdir = "results/dataoverview/",
                                                    basefilename = "incomegroups.png",
                                                    filterzerocommitment = True,
+                                                   valuename="USD_Commitment_Defl",
                                                    incomegroups=['LDCs','LMICs','UMICs'],
                                                    figsize=(30,56)):
     """
@@ -185,6 +190,7 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     @param stopyear: select a specific year to end. for example 2018 to get graphs including data upto 31-12-2018
     @param targetdir: where to store the results. will be created if needed
     @param filterzerocommitment: about 50% of the raw-data have not amount for the attribute 'USD_Commitment_Defl' per default those datapoints will be ignored
+    @param valuename: defaults to USD_Commitment_Defl
     @param basefilename: the filename and format (based on extension) of the resulting image
     @incomegroups: only consider the listed incomegroups. expects an array of IncomegroupNames. There are: LDCs,LMICs,MADCTs,Other LICs,Part I unallocated by income, UMICs. project specific per default only LDCs, LMICs and UMICs are taken into account. with None or empty array every group is considered
 
@@ -198,7 +204,7 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     fig, axes = plt.subplots(nrows=nrows, ncols=1,figsize=figsize)
 
     df = DataFrame()
-    for i in ['CommitmentDate','IncomegroupName','USD_Commitment_Defl']:
+    for i in ['CommitmentDate','IncomegroupName',valuename]:
         df[i] = idf[i]
 
     if startyear:
@@ -213,8 +219,8 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     os.makedirs(targetdir,exist_ok=True)
 
     if filterzerocommitment:
-        df = df[df['USD_Commitment_Defl'].notnull()]
-        df = df[df['USD_Commitment_Defl'] != 0.0]
+        df = df[df[valuename].notnull()]
+        df = df[df[valuename] != 0.0]
 
     if type(incomegroups) == type([]) and len(incomegroups) > 0:
         df = df[df['IncomegroupName'].isin(incomegroups)]
@@ -222,7 +228,7 @@ def generate_barchart_for_incomegroup_distribution(idf,startyear = None, stopyea
     # group by year and IncomegroupName
     df = df.set_index("CommitmentDate")
 
-    groupeddf = df.groupby([Grouper(freq="A"), 'IncomegroupName'])['USD_Commitment_Defl']
+    groupeddf = df.groupby([Grouper(freq="A"), 'IncomegroupName'])[valuename]
 
     # resolve grouping, unstack, fill missing and reset_index()
     ddf = groupeddf.sum().unstack().fillna(0.0).reset_index()
@@ -356,14 +362,15 @@ def filter_donor_sector_flow_recipient(idf,donorcodes=['5'],sectorcodes=['140'],
     @param sectorcodes: an array of sector codes (label/text) used by the oecd to identify a secort. Use None or array of size 0 to skip this filter
     @param flowcodes: an array of flow codes (label/text) used by the oecd to mark specific types of helps. Use None or array of size 0 to skip this filter
     @param recipientcodes: an array of recipient codes (label/text) used by the oecd to identify a recipient country
+    @param valuename: defaults to USD_Commitment_Defl
     @param filterzerocommitment: filter out commitments with a value of zero
     @return: returns a new DataFrame with applied filters
     """
 
     df = idf.copy()
     if filterzerocommitment:
-        df = df[df['USD_Commitment_Defl'].notnull()]
-        df = df[df['USD_Commitment_Defl'] != 0.0]
+        df = df[df[valuename].notnull()]
+        df = df[df[valuename] != 0.0]
 
     if type(donorcodes) == type([]) and len(donorcodes) > 0:
         df = df[df['DonorCode'].isin(donorcodes)]
@@ -409,16 +416,15 @@ if __name__ == "__main__":
     devel = False
 
     # generate histogram over the full dataset
-    if not devel:
-        df = None
-        # read the data respecting what is defined as "sane" set from the oecd
-        # if a pickle file is present, load that instead
+    for valuename in ['USD_Commitment_Defl','USD_Disbursement_Defl','USD_GrantEquiv']:
 
-        # fetch data from worldbank
-        wbdf = fetch_series()
+        if not devel:
+            df = None
+            # read the data respecting what is defined as "sane" set from the oecd
+            # if a pickle file is present, load that instead
 
-        # read the full set of oecd-data
-        oecddf = read_water_data(setname="fullset")
+            # fetch data from worldbank
+            wbdf = fetch_series()
 
         codemapping = get_oecd_iso3_code_mapping()
 

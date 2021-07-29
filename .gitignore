@@ -5,7 +5,7 @@ quick prototyping/
 ipynb_notebooks/data/cache/
 ipynb_notebooks/.vscode
 python/src/
-
+data/cache/
 
 # from here an it's generic ignores
 

@@ -46,7 +46,33 @@ In this analyse only a part of the provided attributes are used:
 * "CommitmentDate": the date of the grant/loan/credit/donation
 * "ExpectedStartDate": the date the project is expected to start
 * "CompletionDate": the date the project is expected to end/ has ended
-* "IncomegroupName": development categroy of the recipient (ex.: 'LDCs','LMICs' ... see  https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/DAC-List-of-ODA-Recipients-for-reporting-2020-flows.pdf for details
+* "IncomegroupName": development categroy of the recipient (ex.: 'LDCs','LMICs' ... see  https://www.oecd.org/dac/financing-sustainable-development/development-finance-standards/DAC-List-of-ODA-Recipients-for-reporting-2020-flows.pdf for details - this is active data, which means it changes every dataset each time the oecd provides a new classification.
+
+
+* 'CrsID': CRS Identification N°
+* 'ProjectNumber': Project identification number used by donor
+* 
+       'RegionCode', 'RegionName', 'IncomegroupCode', 'IncomegroupName',
+       'FlowCode', 'FlowName', 'Bi_Multi', 'Category', 'Finance_t', 'Aid_t',
+       'USD_Commitment', 'USD_Disbursement', 'USD_Received',
+       'USD_Commitment_Defl', 'USD_Disbursement_Defl', 'USD_Received_Defl',
+       'USD_Adjustment', 'USD_Adjustment_Defl', 'USD_AmountUntied',
+       'USD_AmountPartialTied', 'USD_AmountTied', 'USD_AmountUntied_Defl',
+       'USD_AmountPartialTied_Defl', 'USD_Amounttied_Defl', 'USD_IRTC',
+       'USD_Expert_Commitment', 'USD_Expert_Extended', 'USD_Export_Credit',
+       'CurrencyCode', 'Commitment_National', 'Disbursement_National',
+       'GrantEquiv', 'USD_GrantEquiv', 'ShortDescription', 'ProjectTitle',
+       'PurposeCode', 'PurposeName', 'SectorCode', 'SectorName', 'ChannelCode',
+       'ChannelName', 'ChannelReportedName', 'ParentChannelCode', 'Geography',
+       'ExpectedStartDate', 'CompletionDate', 'LongDescription', 'SDGfocus',
+       'Gender', 'Environment', 'PDGG', 'Trade', 'RMNCH', 'DRR', 'Nutrition',
+       'Disability', 'FTC', 'PBA', 'InvestmentProject', 'AssocFinance',
+       'Biodiversity', 'ClimateMitigation', 'ClimateAdaptation',
+       'Desertification', 'CommitmentDate', 'TypeRepayment', 'NumberRepayment',
+       'Interest1', 'Interest2', 'Repaydate1', 'Repaydate2', 'USD_Interest',
+       'USD_Outstanding', 'USD_Arrears_Principal', 'USD_Arrears_Interest',
+       'BudgetIdent', 'CapitalExpend', 'PSIflag', 'PSIAddType', 'PSIAddAssess',
+       'PSIAddDevObj'],
 
 The data can be downloaded by executing fetchdata.sh. The script will create the directory 'data' and store the zipfiles under the name referrenced in the scripts.
 
