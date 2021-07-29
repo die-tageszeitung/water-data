@@ -3,6 +3,8 @@
 results/
 quick prototyping/
 ipynb_notebooks/data/cache/
+ipynb_notebooks/.vscode
+python/src/
 
 
 # from here an it's generic ignores
@@ -136,3 +138,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+ipynb_notebooks/data/.DS_Store
+python/.DS_Store
